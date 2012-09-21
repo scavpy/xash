@@ -1,0 +1,3 @@
+[submodule "tdgl3"]
+	path = tdgl3
+	url = git@github.com:scavpy/tdgl3.git
