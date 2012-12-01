@@ -141,12 +141,21 @@ class TWin:
         self.mesh.draw()
 
 if __name__ == '__main__':
-    try:
-        config = Config(#major_version=3, minor_version=0,
-            sample_buffers=1, samples=4)
-        win = TWin(200,200,caption="Test",bg=(0.4, 0.2, 0.5, 1.0), resizable=True, config=config)
-    except (ValueError, pyglet.window.NoSuchConfigException):
-        win = TWin(200,200,caption="Test",bg=(0.4, 0.2, 0.5, 1.0), resizable=True)
-        print("Preferred config 3.0 with multisampling failed.")
-    pyglet.app.run()
+    preferred_configs = iter([
+        dict(major_version=3, minor_version=0, sample_buffers=1, samples=4),
+        dict(sample_buffers=1, samples=4),
+        dict()])
+    while True:
+        try:
+            options = next(preferred_configs)
+            config = Config(**options)
+            win = TWin(200, 200, caption="Test", bg=(0.4, 0.2, 0.5, 1.0),
+                       resizable=True, config=config)
+            print("options chosen:", options)
+            pyglet.app.run()
+            break
+        except StopIteration:
+            print("no configurations found")
+        except pyglet.window.NoSuchConfigException:
+            pass # try another
 

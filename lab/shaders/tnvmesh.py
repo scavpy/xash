@@ -16,6 +16,7 @@
 from pyglet.gl import *
 from ctypes import byref, cast, POINTER
 from math import sin, cos, pi
+from functools import partial
 
 class TNVMesh:
     def __init__(self, vertexdata, order='V', pieces=None):
@@ -25,25 +26,47 @@ class TNVMesh:
         self.stride = 0
         self.enables = []
         offset = 0
+        # calculate total size of data for each vertex
+        sizes = {"T":8, "U":8,
+                 "V":12, "N":12}
+        array_types = {"V":GL_VERTEX_ARRAY,
+                       "T":GL_TEXTURE_COORD_ARRAY,
+                       "U":GL_TEXTURE_COORD_ARRAY,
+                       "N":GL_NORMAL_ARRAY}
+        texture_units = {"T":GL_TEXTURE0, "U":GL_TEXTURE1}
+        self.stride = sum(sizes[c] for c in order)
+        # calculate offset in interleaved data for each array
+        offsets = {}
         for c in order:
-            if c == 'V':
-                self.enables.append((glVertexPointer, 3, offset, GL_VERTEX_ARRAY))
-                offset += 12
-            elif c == 'T':
-                self.enables.append((glTexCoordPointer, 2, offset, GL_TEXTURE_COORD_ARRAY))
-                offset += 8
-            elif c == 'N':
-                self.enables.append((glNormalPointer, None, offset, GL_NORMAL_ARRAY))
-                offset += 12
-            else:
-                raise ValueError("Unrecognised format char " + c)
-        self.stride = offset
+            offsets[c] = offset
+            offset += sizes[c]
+        assert self.stride == offset
+        # build a list of functions to call before drawing
+        def addfun(*args):
+            self.enables.append(partial(*args))
+        for k in sizes:
+            used = k in order
+            enableDisable = glEnableClientState if used else glDisableClientState
+            if k in texture_units:
+                # specify which texture array we are talking about
+                addfun(glClientActiveTexture, texture_units[k])
+            if used:
+                if k == 'V':
+                    addfun(glVertexPointer, 3, GL_FLOAT, self.stride, offsets[k])
+                elif k == 'T':
+                    addfun(glTexCoordPointer, 2, GL_FLOAT, self.stride, offsets[k])
+                elif k == 'U': # second set of texture coords
+                    addfun(glTexCoordPointer, 2, GL_FLOAT, self.stride, offsets[k])
+                elif k == 'N':
+                    addfun(glNormalPointer, GL_FLOAT, self.stride, offsets[k])
+            addfun(enableDisable, array_types[k]) # enable or disable array
+
         data = (GLfloat*len(vertexdata))()
         for i,f in enumerate(vertexdata):
             data[i] = f
         glBindBuffer(GL_ARRAY_BUFFER, self.vbuf)
         glBufferData(GL_ARRAY_BUFFER, len(data) * 4, byref(data), GL_STATIC_DRAW)
-        self.nvertices = (len(vertexdata) * 4) // offset
+        self.nvertices = (len(vertexdata) * 4) // self.stride
         self.pieces = {}
         if pieces:
             self.pieces.update(pieces)
@@ -64,12 +87,8 @@ class TNVMesh:
         glBindBuffer(GL_ARRAY_BUFFER, self.vbuf)
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT)
         try:
-            for f, n, offset, enable in self.enables:
-                if n is not None: # damn you, glNormalPointer!
-                    f(n, GL_FLOAT, self.stride, offset)
-                else:
-                    f(GL_FLOAT, self.stride, offset)
-                glEnableClientState(enable)
+            for f in self.enables:
+                f()
             for p in todraw:
                 p.draw()
         finally:
@@ -100,6 +119,9 @@ class TNVPiece:
 def make_cuboid(dx, dy, dz):
     """ make a TNVMesh with a single piece called "cuboid" made of GL_QUADS 
       centered on the origin, with width 2*dx, length 2*dy, height 2*dz.
+
+      Texture coords 0 are scaled with the cuboid size
+      Texture coords 1 are 0-1 on each face regardless of size
     """
     order = 'VNT'
     vdata = [
