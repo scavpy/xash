@@ -123,33 +123,33 @@ def make_cuboid(dx, dy, dz):
       Texture coords 0 are scaled with the cuboid size
       Texture coords 1 are 0-1 on each face regardless of size
     """
-    order = 'VNT'
+    order = 'VNTU'
     vdata = [
-    #Vx   Vy   Vz  Nx  Ny  Nz Ts Tt
-    -dx, -dy, -dz,  0, -1,  0, 0, 0, # front
-     dx, -dy, -dz,  0, -1,  0, 1, 0,
-     dx, -dy,  dz,  0, -1,  0, 1, 1,
-    -dx, -dy,  dz,  0, -1,  0, 0, 1,
-     dx, -dy, -dz,  1,  0,  0, 0, 0, # right
-     dx,  dy, -dz,  1,  0,  0, 1, 0,
-     dx,  dy,  dz,  1,  0,  0, 1, 1,
-     dx, -dy,  dz,  1,  0,  0, 0, 1,
-     dx,  dy, -dz,  0,  1,  0, 0, 0, # back
-    -dx,  dy, -dz,  0,  1,  0, 1, 0,
-    -dx,  dy,  dz,  0,  1,  0, 1, 1,
-     dx,  dy,  dz,  0,  1,  0, 0, 1,
-    -dx,  dy, -dz, -1,  0,  0, 0, 0, # left
-    -dx, -dy, -dz, -1,  0,  0, 1, 0,
-    -dx, -dy,  dz, -1,  0,  0, 1, 1,
-    -dx,  dy,  dz, -1,  0,  0, 0, 1,
-    -dx, -dy,  dz,  0,  0,  1, 0, 0, # top
-     dx, -dy,  dz,  0,  0,  1, 1, 0,
-     dx,  dy,  dz,  0,  0,  1, 1, 1,
-    -dx,  dy,  dz,  0,  0,  1, 0, 1,
-    -dx,  dy, -dz,  0,  0, -1, 0, 0, # bottom
-     dx,  dy, -dz,  0,  0, -1, 1, 0,
-     dx, -dy, -dz,  0,  0, -1, 1, 1,
-    -dx, -dy, -dz,  0,  0, -1, 0, 1
+    #Vx   Vy   Vz  Nx  Ny  Nz  Ts  Tt Us Ut
+    -dx, -dy, -dz,  0, -1,  0, 0,   0, 0, 0, # front
+     dx, -dy, -dz,  0, -1,  0, dx,  0, 1, 0,
+     dx, -dy,  dz,  0, -1,  0, dx, dz, 1, 1,
+    -dx, -dy,  dz,  0, -1,  0, 0,  dz, 0, 1,
+     dx, -dy, -dz,  1,  0,  0, 0,   0, 0, 0, # right
+     dx,  dy, -dz,  1,  0,  0, dy,  0, 1, 0,
+     dx,  dy,  dz,  1,  0,  0, dy, dz, 1, 1,
+     dx, -dy,  dz,  1,  0,  0, 0,  dz, 0, 1,
+     dx,  dy, -dz,  0,  1,  0, 0,   0, 0, 0, # back
+    -dx,  dy, -dz,  0,  1,  0, dx,  0, 1, 0,
+    -dx,  dy,  dz,  0,  1,  0, dx, dz, 1, 1,
+     dx,  dy,  dz,  0,  1,  0, 0,  dz, 0, 1,
+    -dx,  dy, -dz, -1,  0,  0, 0,   0, 0, 0, # left
+    -dx, -dy, -dz, -1,  0,  0, dy,  0, 1, 0,
+    -dx, -dy,  dz, -1,  0,  0, dy, dz, 1, 1,
+    -dx,  dy,  dz, -1,  0,  0, 0,  dz, 0, 1,
+    -dx, -dy,  dz,  0,  0,  1, 0,   0, 0, 0, # top
+     dx, -dy,  dz,  0,  0,  1, dx,  0, 1, 0,
+     dx,  dy,  dz,  0,  0,  1, dx, dy, 1, 1,
+    -dx,  dy,  dz,  0,  0,  1, 0,  dy, 0, 1,
+    -dx,  dy, -dz,  0,  0, -1, 0,  0,  0, 0, # bottom
+     dx,  dy, -dz,  0,  0, -1, dx, 0,  1, 0,
+     dx, -dy, -dz,  0,  0, -1, dx, dy, 1, 1,
+    -dx, -dy, -dz,  0,  0, -1, 0,  dy, 0, 1,
     ]
     QUAD_CUBOID_PIECE = TNVPiece(range(24), GL_QUADS)
     return TNVMesh(vdata, order, dict(cuboid=QUAD_CUBOID_PIECE))

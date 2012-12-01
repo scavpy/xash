@@ -26,6 +26,7 @@ void main()
   brightness = ambient_brightness + diffuse_brightness;
   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
   gl_TexCoord[0] = gl_MultiTexCoord0;
+  gl_TexCoord[1] = gl_MultiTexCoord1;
 }
 """
 
@@ -70,7 +71,7 @@ smooth in float brightness;
 
 void main()
 {
-   vec2 dists = abs(vec4(0.5) - fract(gl_TexCoord[0])).st;
+   vec2 dists = abs(vec4(0.5) - fract(gl_TexCoord[1])).st;
    float cmix = smoothstep(0.4, 0.5, max(dists.s, dists.t));
    gl_FragColor = mix(paper, ink, cmix) * brightness;
 }
